@@ -1,0 +1,74 @@
+name: Clair in CI DB - test
+
+# This workflow tests latest database version of clair-in-ci and
+# pushes it to app-studio registry in case all tests passed
+
+on:
+  repository_dispatch:
+    types: trigger_workflow
+
+env:
+  REGISTRY: quay.io/redhat-appstudio
+  IMAGE_NAME: clair-test-build
+  LATEST_TAG: latest
+  PREVIOUS_TAG: previous
+  TO_TEST: ${{ github.event.client_payload.image_tag }} # required, fail if not specified
+  EVENT: ${{ github.event.client_payload.event }} # required, fail if not specified
+
+jobs:
+  test-and-push:
+    name: Test and push image
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Check required parameters
+        run: |
+          if [ -z "${{ env.TO_TEST }}" ] || [ -z "${{ env.EVENT }}" ]; then
+            echo "Recieved: image-tag: ${{ env.TO_TEST }}, event: ${{ env.EVENT }}. Did not recieve required parameters, cancelling the workflow."
+            exit 1
+          fi
+
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@v2.2.0
+        if: ${{ github.event.client_payload.event != 'pull_request' }}  # don't login from PR; secrets are not passed to PRs from fork
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.HACBS_TEST_QUAY_USER }}
+          password: ${{ secrets.HACBS_TEST_QUAY_TOKEN }}
+
+      - name: Setup docker for workflow
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Pull-and-retag-image
+        if: ${{ github.event.client_payload.event != 'pull_request' }}  # don't retag image from PR
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PREVIOUS_TAG }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PREVIOUS_TAG }}
+          docker rmi -f $(docker images -q)
+
+      - name: Get Clair version
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }}
+          docker run --rm -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} clair-action --version
+
+      - name: Check Clair output format
+        run: |
+          # test real life usage of clair
+          mkdir results
+          docker run --rm -v $(pwd)/results:/results:rw -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} bash -c 'clair-action report --image-ref=registry.access.redhat.com/ubi9-minimal --db-path=/tmp/matcher.db --format=quay > /results/clairdata.json'
+
+
+          # check if required metadata and path to values are the same as expected
+          jq -e '.data[].Features[0] | select(has("Name") and has("Vulnerabilities")) or error("Required keys do not exist")' results/clairdata.json
+
+      - name: Retag-and-push-to-${{ env.REGISTRY }}
+        if: ${{ github.event.client_payload.event != 'pull_request' }}  # don't push image from PR
+        id: push-image
+        run: |
+          docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
+          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
