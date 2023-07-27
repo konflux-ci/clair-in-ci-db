@@ -1,0 +1,109 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: build-and-trigger
+  annotations:
+    pipelinesascode.tekton.dev/max-keep-runs: "3"
+    pipelinesascode.tekton.dev/on-cel-expression: |
+            event == "push" || event == "pull_request"
+    pipelinesascode.tekton.dev/task: "[buildah, git-clone]"
+spec:
+  params:
+    - name: output-image
+      value: quay.io/redhat-appstudio/clair-in-ci:to_test
+    - name: builder-image
+      value: registry.access.redhat.com/ubi9/buildah:9.0.0-19@sha256:c8b1d312815452964885680fc5bc8d99b3bfe9b6961228c71a09c72ca8e915eb
+    - name: dockerfile
+      value: Dockerfile
+    - name: revision
+      value: "{{ revision }}"
+    - name: target_branch
+      value: "{{ target_branch }}"
+    - name: source_branch
+      value: "{{ source_branch }}"
+    - name: repo_url
+      value: "{{ repo_url }}"
+  pipelineSpec:
+    params:
+      - name: output-image
+      - name: builder-image
+      - name: dockerfile
+      - name: revision
+      - name: target_branch
+      - name: source_branch
+      - name: repo_url
+    workspaces:
+      - name: workspace
+    tasks:
+      - name: fetch-repo
+        workspaces:
+          - name: output
+            workspace: workspace
+        taskRef:
+          name: git-clone
+        params:
+          - name: url
+            value: "$(params.repo_url)"
+          - name: revision
+            value: "$(params.revision)"
+      - name: build-image
+        workspaces:
+          - name: source
+            workspace: workspace
+        params:
+          - name: IMAGE
+            value: quay.io/redhat-appstudio/clair-in-ci:{{revision}}
+          - name: BUILDER_IMAGE
+            value: $(params.builder-image)
+          - name: DOCKERFILE
+            value: $(workspaces.source.path)/$(params.dockerfile)
+        runAfter:
+          - fetch-repo
+        taskRef:
+          name: buildah
+          kind: ClusterTask
+      - name: trigger-tests-and-push
+        params:
+          - name: revision
+            value: "{{ revision }}"
+          - name: target_branch
+            value: "{{ target_branch }}"
+          - name: source_branch
+            value: "{{ source_branch }}"
+        runAfter:
+          - build-image
+        taskSpec:
+          params:
+            - name: revision
+              type: string
+            - name: target_branch
+              type: string
+            - name: source_branch
+              type: string
+          steps:
+            - name: tigger-workflow
+              image: registry.access.redhat.com/ubi9/python-39
+              env:
+                - name: GITHUB_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: integration-github-token
+                      key: integration-github-token
+              script: |
+                #!/usr/bin/env bash
+                event="pull_request"
+                if [ "$(params.target_branch)" == "daily" ]; then
+                  event="daily"
+                elif [ "$(params.target_branch)" == "main" ] && [ "$(params.source_branch)" == "main" ]; then
+                  event="push"
+                fi
+                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"event": "${event}", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
+  workspaces:
+    - name: workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

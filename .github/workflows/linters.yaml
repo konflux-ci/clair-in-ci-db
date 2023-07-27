@@ -1,0 +1,18 @@
+on:
+  pull_request:
+    branches: [ main, daily ]
+
+jobs:
+  lint:
+    name: Lint change content
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Dockerfile linter
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          ignore: DL3041
