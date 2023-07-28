@@ -13,7 +13,7 @@ env:
   LATEST_TAG: latest
   PREVIOUS_TAG: previous
   TO_TEST: ${{ github.event.client_payload.image_tag }} # required, fail if not specified
-  EVENT: ${{ github.event.client_payload.event }} # required, fail if not specified
+  PR_EVENT: ${{ github.event.client_payload.pr_event }} # required, fail if not specified
 
 jobs:
   test-and-push:
@@ -23,8 +23,8 @@ jobs:
     steps:
       - name: Check required parameters
         run: |
-          if [ -z "${{ env.TO_TEST }}" ] || [ -z "${{ env.EVENT }}" ]; then
-            echo "Recieved: image-tag: ${{ env.TO_TEST }}, event: ${{ env.EVENT }}. Did not recieve required parameters, cancelling the workflow."
+          if [ -z "${{ env.TO_TEST }}" ] || [ -z "${{ env.PR_EVENT }}" ]; then
+            echo "Recieved: image-tag: ${{ env.TO_TEST }}, event: ${{ env.PR_EVENT }}. Did not recieve required parameters, cancelling the workflow."
             exit 1
           fi
 

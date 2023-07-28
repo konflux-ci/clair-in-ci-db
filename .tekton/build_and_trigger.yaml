@@ -91,13 +91,13 @@ spec:
                       key: integration-github-token
               script: |
                 #!/usr/bin/env bash
-                event="pull_request"
+                pr_event="pull_request"
                 if [ "$(params.target_branch)" == "daily" ]; then
-                  event="daily"
+                  pr_event="daily"
                 elif [ "$(params.target_branch)" == "main" ] && [ "$(params.source_branch)" == "main" ]; then
-                  event="push"
+                  pr_event="push"
                 fi
-                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"event": "${event}", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
+                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"event": "${pr_event}", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
   workspaces:
     - name: workspace
       volumeClaimTemplate:
