@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: quay.io/redhat-appstudio
-  IMAGE_NAME: clair-test-build
+  IMAGE_NAME: clair-in-ci
   LATEST_TAG: latest
   PREVIOUS_TAG: previous
   TO_TEST: ${{ github.event.client_payload.image_tag }} # required, fail if not specified
