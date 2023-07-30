@@ -5,7 +5,7 @@ name: Trigger clair db image build
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 4 * * *'
 
 env:
   REGISTRY: quay.io/redhat-appstudio
@@ -15,10 +15,6 @@ env:
   GITHUB_TOKEN: ${{ secrets.HACBS_TEST_GITHUB_TOKEN }}
   TARGET_BRANCH: daily
   SOURCE_BRANCH: main # building from main
-  IS_CREATED: false
-  PR_STATE: ""
-  PR_NUMBER: 0
-  
 
 jobs:
   test:
@@ -34,7 +30,7 @@ jobs:
           PR_NUMBER=$(gh pr list --state all --label clair-db --json number | jq -r '.[0] | .number')
           if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" == null ]; then
             echo "No existing PR with label clair-db was found. Creating a new PR..."
-            gh pr create -B $TARGET_BRANCH -H $SOURCE_BRANCH --title 'Using branch: "${SOURCE_BRANCH}" to create PR triggering clair-db build PAC.' --body 'Created by Github action' --label clair-db
+            gh pr create -B $TARGET_BRANCH -H $SOURCE_BRANCH --title 'Using branch: "${{ env.SOURCE_BRANCH }}" to create PR triggering clair-db build PAC.' --body 'Created by Github action' --label clair-db
             sleep 5
             PR_NUMBER=$(gh pr list --state all --label clair-db --json number | jq -r '.[0] | .number')
           fi
