@@ -98,7 +98,7 @@ spec:
                   pr_event="push"
                 fi
                 echo "Acting according to event: "${pr_event}""
-                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"event": "'"$pr_event"'", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
+                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$pr_event"'", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
   workspaces:
     - name: workspace
       volumeClaimTemplate:
