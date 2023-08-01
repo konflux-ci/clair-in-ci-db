@@ -30,7 +30,7 @@ jobs:
 
       - name: Log into registry ${{ env.REGISTRY }}
         uses: docker/login-action@v2.2.0
-        if: ${{ github.event.client_payload.event != 'pull_request' }}  # don't login from PR; secrets are not passed to PRs from fork
+        if: ${{ github.event.client_payload.pr_event != 'pull_request' }}  # don't login from PR; secrets are not passed to PRs from fork
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.HACBS_TEST_QUAY_USER }}
