@@ -44,7 +44,7 @@ jobs:
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
 
       - name: Pull-and-retag-image
-        if: ${{ github.event.client_payload.event != 'pull_request' }}  # don't retag image from PR
+        if: ${{ github.event.client_payload.pr_event != 'pull_request' }}  # don't retag image from PR
         run: |
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.PREVIOUS_TAG }}
@@ -67,7 +67,7 @@ jobs:
           jq -e '.data[].Features[0] | select(has("Name") and has("Vulnerabilities")) or error("Required keys do not exist")' results/clairdata.json
 
       - name: Retag-and-push-to-${{ env.REGISTRY }}
-        if: ${{ github.event.client_payload.event != 'pull_request' }}  # don't push image from PR
+        if: ${{ github.event.client_payload.pr_event != 'pull_request' }}  # don't push image from PR
         id: push-image
         run: |
           docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
