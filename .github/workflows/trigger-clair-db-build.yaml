@@ -43,7 +43,7 @@ jobs:
             echo "$PR_NUMBER is $PR_STATE, reopening it now."
             gh pr reopen $PR_NUMBER
             echo "PR number: $PR_NUMBER has been opened."
-            sleep 5
+            sleep 20
             gh pr close $PR_NUMBER
             echo "PR number: $PR_NUMBER has been closed."
           fi
