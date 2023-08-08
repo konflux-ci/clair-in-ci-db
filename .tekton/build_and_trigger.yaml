@@ -23,6 +23,8 @@ spec:
       value: "{{ source_branch }}"
     - name: repo_url
       value: "{{ repo_url }}"
+    - name: event_type
+      value: "{{ event_type }}"
   pipelineSpec:
     params:
       - name: output-image
@@ -32,6 +34,7 @@ spec:
       - name: target_branch
       - name: source_branch
       - name: repo_url
+      - name: event_type
     workspaces:
       - name: workspace
     tasks:
@@ -70,6 +73,8 @@ spec:
             value: "{{ target_branch }}"
           - name: source_branch
             value: "{{ source_branch }}"
+          - name: event_type
+            value: "{{ event_type }}"
         runAfter:
           - build-image
         taskSpec:
@@ -79,6 +84,8 @@ spec:
             - name: target_branch
               type: string
             - name: source_branch
+              type: string
+            - name: event_type
               type: string
           steps:
             - name: tigger-workflow
@@ -91,14 +98,8 @@ spec:
                       key: integration-github-token
               script: |
                 #!/usr/bin/env bash
-                pr_event="pull_request"
-                if [ "$(params.target_branch)" == "daily" ]; then
-                  pr_event="daily"
-                elif [ "$(params.target_branch)" == "main" ] && [ "$(params.source_branch)" == "main" ]; then
-                  pr_event="push"
-                fi
-                echo "Acting according to event: "${pr_event}""
-                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$pr_event"'", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
+                echo "Acting according to event: "$(params.event_type)""
+                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "$(params.event_type)", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
   workspaces:
     - name: workspace
       volumeClaimTemplate:

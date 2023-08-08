@@ -5,7 +5,7 @@ name: Trigger clair db image build
 
 on:
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 6 * * *'
 
 env:
   REGISTRY: quay.io/redhat-appstudio
@@ -24,26 +24,25 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
-    - name: create pull request
+      when:
+        ref: 'main'
+    - name: create pull request & empty commit
       run: |
           echo "Check if PR is already created."
           PR_NUMBER=$(gh pr list --state all --label clair-db --json number | jq -r '.[0] | .number')
           if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" == null ]; then
             echo "No existing PR with label clair-db was found. Creating a new PR..."
-            gh pr create -B $TARGET_BRANCH -H $SOURCE_BRANCH --title 'Using branch: "${{ env.SOURCE_BRANCH }}" to create PR triggering clair-db build PAC.' --body 'Created by Github action' --label clair-db
+            gh pr create -B $TARGET_BRANCH -H $SOURCE_BRANCH --title 'Using branch: "${SOURCE_BRANCH}" to create PR triggering clair-db build PAC.' --body 'Created by Github action' --label clair-db
             sleep 5
             PR_NUMBER=$(gh pr list --state all --label clair-db --json number | jq -r '.[0] | .number')
           fi
           PR_STATE=$(gh pr view $PR_NUMBER --json state | jq -r '.state')
-          if [ "$PR_STATE" == "OPEN" ]; then
-            echo "$PR_NUMBER is $PR_STATE, closing it now."
-            gh pr close $PR_NUMBER
-            echo "PR number: $PR_NUMBER has been closed."
-          else
+          if [ "$PR_STATE" != "OPEN" ]; then
             echo "$PR_NUMBER is $PR_STATE, reopening it now."
             gh pr reopen $PR_NUMBER
             echo "PR number: $PR_NUMBER has been opened."
-            sleep 20
-            gh pr close $PR_NUMBER
-            echo "PR number: $PR_NUMBER has been closed."
+            sleep 5
+          else
+            git commit --allow-empty -m "$(date)"
+            git push origin "${SOURCE_BRANCH}" -f
           fi
