@@ -5,7 +5,7 @@ name: Trigger clair db image build
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '*/30 * * * *'
 
 env:
   REGISTRY: quay.io/redhat-appstudio
@@ -46,6 +46,6 @@ jobs:
             echo "PR number: $PR_NUMBER has been opened."
             sleep 5
           else
-            git commit --allow-empty -m "$(date)"
+            git commit --author="hacbs-test-bot <>" --allow-empty -m "$(date)"
             git push origin "${SOURCE_BRANCH}" -f
           fi
