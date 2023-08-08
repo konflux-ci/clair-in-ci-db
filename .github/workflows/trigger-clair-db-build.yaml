@@ -28,9 +28,10 @@ jobs:
         ref: 'main'
     - name: create pull request & empty commit
       run: |
-          git config user.email "hacbs-test-bot@redhat.com"
+          git config user.email "<>"
           git config user.name "hacbs-test-bot"
           whoami
+          git config --list
           echo "Check if PR is already created."
           PR_NUMBER=$(gh pr list --state all --label clair-db --json number | jq -r '.[0] | .number')
           if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" == null ]; then
