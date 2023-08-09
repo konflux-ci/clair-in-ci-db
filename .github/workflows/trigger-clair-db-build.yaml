@@ -5,7 +5,7 @@ name: Trigger clair db image build
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '0 4 * * *'
 
 env:
   REGISTRY: quay.io/redhat-appstudio
