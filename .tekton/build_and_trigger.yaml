@@ -49,19 +49,52 @@ spec:
             value: "$(params.repo_url)"
           - name: revision
             value: "$(params.revision)"
+      - name: calculate-tag
+        params:
+          - name: revision
+            value: "{{ revision }}"
+          - name: target_branch
+            value: "{{ target_branch }}"
+          - name: event_type
+            value: "{{ event_type }}"
+        runAfter:
+          - fetch-repo
+        taskSpec:
+          params:
+            - name: revision
+              type: string
+            - name: target_branch
+              type: string
+            - name: event_type
+              type: string
+          results:
+            - name: image_tag
+              description: Image tag to be used by build
+          steps:
+            - name: make-tag
+              image: registry.access.redhat.com/ubi9
+              script: |
+                #!/usr/bin/env bash
+                VERSION_MAJOR=v1
+                # make sure you use `echo -n` otherwise random failures are waiting for you
+                if [ "$(params.target_branch)" == "daily" ] || [ "$(params.event_type)" == "push" ]; then
+                  echo -n "${VERSION_MAJOR}.$(date --utc '+%Y%m%d%H%M%S')" | tee $(results.image_tag.path)
+                else
+                  echo -n "PR-$(params.revision)" | tee $(results.image_tag.path)
+                fi
       - name: build-image
         workspaces:
           - name: source
             workspace: workspace
         params:
           - name: IMAGE
-            value: quay.io/redhat-appstudio/clair-in-ci:{{revision}}
+            value: "quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
           - name: BUILDER_IMAGE
             value: $(params.builder-image)
           - name: DOCKERFILE
             value: $(workspaces.source.path)/$(params.dockerfile)
         runAfter:
-          - fetch-repo
+          - calculate-tag
         taskRef:
           name: buildah
           kind: ClusterTask
@@ -75,6 +108,8 @@ spec:
             value: "{{ source_branch }}"
           - name: event_type
             value: "{{ event_type }}"
+          - name: image_tag
+            value: $(tasks.calculate-tag.results.image_tag)
         runAfter:
           - build-image
         taskSpec:
@@ -86,6 +121,8 @@ spec:
             - name: source_branch
               type: string
             - name: event_type
+              type: string
+            - name: image_tag
               type: string
           steps:
             - name: tigger-workflow
@@ -103,7 +140,7 @@ spec:
                   event="daily-or-push"
                 fi
                 echo "Acting according to event: "$event""
-                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$event"'", "image_tag": "$(params.revision)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
+                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$event"'", "image_tag": "$(params.image_tag)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
   workspaces:
     - name: workspace
       volumeClaimTemplate:
