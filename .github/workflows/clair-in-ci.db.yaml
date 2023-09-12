@@ -54,5 +54,5 @@ jobs:
         if: ${{ github.event.client_payload.pr_event != 'pull_request' }}  # don't push image from PR
         id: push-image
         run: |
-          skopeo copy --all ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
-          skopeo copy --all ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.MAJOR_VERSION_TAG }}
+          skopeo copy --all docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.LATEST_TAG }}
+          skopeo copy --all docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.TO_TEST }} docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.MAJOR_VERSION_TAG }}
