@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: build-and-trigger
+  name: clair-in-ci-db-build-and-trigger
   annotations:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: |
