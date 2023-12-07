@@ -36,6 +36,9 @@ spec:
         workspaces:
           - name: output
             workspace: workspace
+        computeResources:
+          requests:
+            cpu: 100mi
         taskRef:
           name: git-clone
         params:
@@ -76,6 +79,9 @@ spec:
         workspaces:
           - name: source
             workspace: workspace
+        computeResources:
+          requests:
+            cpu: 1
         params:
           - name: IMAGE
             value: "quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
@@ -89,6 +95,9 @@ spec:
           name: buildah
           kind: ClusterTask
       - name: trigger-tests-and-push
+        computeResources:
+          requests:
+            cpu: 100mi
         params:
           - name: revision
             value: "{{ revision }}"
