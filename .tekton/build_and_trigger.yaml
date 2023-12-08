@@ -8,6 +8,8 @@ metadata:
             event == "push" || event == "pull_request"
     pipelinesascode.tekton.dev/task: "[buildah, git-clone]"
 spec:
+  timeouts:
+    pipeline: "2h"
   params:
     - name: output-image
       value: quay.io/redhat-appstudio/clair-in-ci:to_test
@@ -76,6 +78,7 @@ spec:
                   echo -n "PR-$(params.revision)" | tee $(results.image_tag.path)
                 fi
       - name: build-image
+        timeout: "0"
         workspaces:
           - name: source
             workspace: workspace
