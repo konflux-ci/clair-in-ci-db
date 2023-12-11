@@ -1,13 +1,15 @@
 apiVersion: tekton.dev/v1beta1
 kind: PipelineRun
 metadata:
-  name: build-and-trigger
+  name: clair-in-ci-db-build-and-trigger
   annotations:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: |
             event == "push" || event == "pull_request"
     pipelinesascode.tekton.dev/task: "[buildah, git-clone]"
 spec:
+  timeouts:
+    pipeline: "2h"
   params:
     - name: output-image
       value: quay.io/redhat-appstudio/clair-in-ci:to_test
@@ -36,6 +38,9 @@ spec:
         workspaces:
           - name: output
             workspace: workspace
+        computeResources:
+          requests:
+            cpu: 100mi
         taskRef:
           name: git-clone
         params:
@@ -73,9 +78,13 @@ spec:
                   echo -n "PR-$(params.revision)" | tee $(results.image_tag.path)
                 fi
       - name: build-image
+        timeout: "0"
         workspaces:
           - name: source
             workspace: workspace
+        computeResources:
+          requests:
+            cpu: 1
         params:
           - name: IMAGE
             value: "quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
@@ -89,6 +98,9 @@ spec:
           name: buildah
           kind: ClusterTask
       - name: trigger-tests-and-push
+        computeResources:
+          requests:
+            cpu: 100mi
         params:
           - name: revision
             value: "{{ revision }}"
