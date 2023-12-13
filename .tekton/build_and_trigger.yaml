@@ -125,8 +125,8 @@ spec:
                 - name: GITHUB_TOKEN
                   valueFrom:
                     secretKeyRef:
-                      name: integration-github-token
-                      key: integration-github-token
+                      name: clair-in-ci-db-github-token
+                      key: github-token
               script: |
                 #!/usr/bin/env bash
                 event="pull_request"
