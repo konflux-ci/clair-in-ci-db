@@ -92,6 +92,8 @@ spec:
             value: $(params.builder-image)
           - name: DOCKERFILE
             value: $(workspaces.source.path)/$(params.dockerfile)
+          - name: BUILD_EXTRA_ARGS
+            value: "--storage-driver=fuse-overlayfs"
         runAfter:
           - calculate-tag
         taskRef:
