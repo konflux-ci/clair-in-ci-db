@@ -92,8 +92,8 @@ spec:
             value: $(params.builder-image)
           - name: DOCKERFILE
             value: $(workspaces.source.path)/$(params.dockerfile)
-          - name: BUILD_EXTRA_ARGS
-            value: "--storage-driver=vfs"
+          - name: STORAGE_DRIVER
+            value: "overlay"
         runAfter:
           - calculate-tag
         taskRef:
