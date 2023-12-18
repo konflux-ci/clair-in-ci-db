@@ -93,7 +93,7 @@ spec:
           - name: DOCKERFILE
             value: $(workspaces.source.path)/$(params.dockerfile)
           - name: BUILD_EXTRA_ARGS
-            value: "--storage-driver=overlayfs2"
+            value: "--storage-driver=vfs"
         runAfter:
           - calculate-tag
         taskRef:
