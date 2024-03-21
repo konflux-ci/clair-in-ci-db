@@ -134,7 +134,7 @@ spec:
                   event="push"
                 fi
                 echo "Acting according to event: "$event""
-                curl -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$event"'", "image_tag": "$(params.image_tag)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
+                curl --fail-with-body -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$event"'", "image_tag": "$(params.image_tag)"}}' https://api.github.com/repos/redhat-appstudio/clair-in-ci-db/dispatches
   workspaces:
     - name: workspace
       volumeClaimTemplate:
