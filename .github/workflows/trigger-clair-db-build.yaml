@@ -6,9 +6,9 @@ name: Trigger clair db image build
 on:
   schedule:
     - cron: '0 4 * * *'
+  workflow_dispatch:
 
 env:
-  GITHUB_TOKEN: ${{ secrets.HACBS_TEST_GITHUB_TOKEN }}
   SOURCE_BRANCH: main # building from main
 
 jobs:
@@ -21,6 +21,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: 'main'
+        token: ${{ secrets.HACBS_TEST_GITHUB_TOKEN }}
     - name: create empty commit
       run: |
           git config --global user.email "<>"
