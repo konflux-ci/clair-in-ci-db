@@ -6,6 +6,7 @@ name: Trigger clair db image build
 on:
   schedule:
     - cron: '0 4 * * *'
+  workflow_dispatch:
 
 env:
   SOURCE_BRANCH: main # building from main
