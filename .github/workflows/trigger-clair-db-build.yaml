@@ -27,7 +27,7 @@ jobs:
     - name: create empty commit
       run: |
           git config --global user.email "<>"
-          git config --global user.name "hacbs-test-bot"
+          git config --global user.name "daily-build-trigger"
           echo "Creating empty commit."
             git commit --allow-empty -m "$(date)"
             git push origin "${SOURCE_BRANCH}" -f
