@@ -8,6 +8,9 @@ on:
     - cron: '0 4 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 env:
   SOURCE_BRANCH: main # building from main
 
@@ -21,7 +24,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: 'main'
-        token: ${{ secrets.HACBS_TEST_GITHUB_TOKEN }}
     - name: create empty commit
       run: |
           git config --global user.email "<>"
