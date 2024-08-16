@@ -23,6 +23,27 @@ spec:
       value: "{{ repo_url }}"
     - name: event_type
       value: "{{ event_type }}"
+    - name: registry-url
+      value: "quay.io/redhat-appstudio"
+    - name: registry-username
+      value: "{{ registry_username }}"
+    - name: registry-password
+      value: "{{ registry_password }}"
+    - name: image-name
+      value: "clair-in-ci"
+    - name: latest-tag
+      value: "latest"
+    - name: major-version-tag
+      value: "v1"
+  workspaces:
+    - name: workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
   pipelineSpec:
     params:
       - name: output-image
@@ -31,6 +52,12 @@ spec:
       - name: revision
       - name: repo_url
       - name: event_type
+      - name: registry-url
+      - name: registry-username
+      - name: registry-password
+      - name: image-name
+      - name: latest-tag
+      - name: major-version-tag
     workspaces:
       - name: workspace
     tasks:
@@ -51,9 +78,9 @@ spec:
       - name: calculate-tag
         params:
           - name: revision
-            value: "{{ revision }}"
+            value: "$(params.revision)"
           - name: event_type
-            value: "{{ event_type }}"
+            value: "$(params.event_type)"
         runAfter:
           - fetch-repo
         taskSpec:
@@ -85,6 +112,11 @@ spec:
         computeResources:
           requests:
             cpu: 1
+        runAfter:
+          - calculate-tag
+        taskRef:
+          name: buildah
+          kind: ClusterTask
         params:
           - name: IMAGE
             value: "quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
@@ -92,49 +124,45 @@ spec:
             value: $(params.builder-image)
           - name: DOCKERFILE
             value: $(workspaces.source.path)/$(params.dockerfile)
-        runAfter:
-          - calculate-tag
-        taskRef:
-          name: buildah
-          kind: ClusterTask
-      - name: trigger-tests-and-push
-        computeResources:
-          requests:
-            cpu: 100mi
-        params:
-          - name: revision
-            value: "{{ revision }}"
-          - name: event_type
-            value: "{{ event_type }}"
-          - name: image_tag
-            value: $(tasks.calculate-tag.results.image_tag)
+      - name: test-clair
         runAfter:
           - build-image
         taskSpec:
-          params:
-            - name: revision
-              type: string
-            - name: event_type
-              type: string
-            - name: image_tag
-              type: string
           steps:
-            - name: tigger-workflow
-              image: registry.access.redhat.com/ubi9/python-39
-              env:
-                - name: GITHUB_TOKEN
-                  valueFrom:
-                    secretKeyRef:
-                      name: clair-in-ci-db-github-token
-                      key: github-token
+            - name: test-clair-version
+              image: quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)
               script: |
                 #!/usr/bin/env bash
-                event="pull_request"
-                if [ "$(params.event_type)" == "push" ]; then
-                  event="push"
-                fi
-                echo "Acting according to event: "$event""
-                curl --fail-with-body -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" --request POST --data '{"event_type":"trigger_workflow", "client_payload": {"pr_event": "'"$event"'", "image_tag": "$(params.image_tag)"}}' https://api.github.com/repos/konflux-ci/clair-in-ci-db/dispatches
+                echo "See current version of Clair below:"
+                clair-action --version
+            - name: get-clair-output
+              image: quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)
+              script: |
+                #!/usr/bin/env bash
+                echo "Test real life usage of Clair"
+                clair-action report --image-ref=registry.access.redhat.com/ubi9-minimal --db-path=/tmp/matcher.db --format=quay | tee /tekton/home/clairdata.json
+                echo "Clair report saved to /tekton/home/clairdata.json"
+            - name: check-clair-output
+              image: quay.io/redhat-appstudio/konflux-test:latest
+              script: |
+                #!/usr/bin/env bash
+                echo "Check if the output is as expected"
+                jq -e '.data[].Features[0] | select(has("Name") and has("Vulnerabilities")) or error("Required keys do not exist")' /tekton/home/clairdata.json            
+      - name: login-and-push
+        runAfter:
+          - test-clair
+        when:
+        - input: "$(params.event_type)"
+          operator: in
+          values: ["push"]
+        taskSpec:
+          steps:
+            - name: login-and-push
+              image: quay.io/redhat-appstudio/konflux-test:latest
+              script: |
+                #!/usr/bin/env bash
+                  skopeo copy --all docker://$(params.registry-url)/clair-in-ci:$(tasks.calculate-tag.results.image_tag) docker://$(params.registry-url)/clair-in-ci:$(params.latest-tag)
+                  skopeo copy --all docker://$(params.registry-url)/clair-in-ci:$(tasks.calculate-tag.results.image_tag) docker://$(params.registry-url)/clair-in-ci:$(params.major-version-tag)
   workspaces:
     - name: workspace
       volumeClaimTemplate:
