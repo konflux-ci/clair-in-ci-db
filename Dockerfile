@@ -11,7 +11,7 @@ WORKDIR /opt/app-root/src/clair-action
 RUN go get github.com/quay/claircore@v1.5.31 && \
     go build -o clair-action -trimpath ./cmd/cli
 
-FROM registry.access.redhat.com/ubi9-minimal@sha256:f182b500ff167918ca1010595311cf162464f3aa1cab755383d38be61b4d30aa
+FROM registry.access.redhat.com/ubi9-minimal@sha256:c0e70387664f30cd9cf2795b547e4a9a51002c44a4a86aa9335ab030134bf392
 
 COPY --from=build /opt/app-root/src/clair-action/clair-action /usr/bin/clair-action
 
