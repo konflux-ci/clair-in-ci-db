@@ -143,7 +143,7 @@ spec:
                 clair-action report --image-ref=registry.access.redhat.com/ubi9-minimal --db-path=/tmp/matcher.db --format=quay | tee /tekton/home/clairdata.json
                 echo "Clair report saved to /tekton/home/clairdata.json"
             - name: check-clair-output
-              image: quay.io/redhat-appstudio/konflux-test:latest
+              image: quay.io/konflux-ci/konflux-test:latest
               script: |
                 #!/usr/bin/env bash
                 echo "Check if the output is as expected"
@@ -158,7 +158,7 @@ spec:
         taskSpec:
           steps:
             - name: login-and-push
-              image: quay.io/redhat-appstudio/konflux-test:latest
+              image: quay.io/konflux-ci/konflux-test:latest
               script: |
                 #!/usr/bin/env bash
                   skopeo copy --all docker://$(params.registry-url)/clair-in-ci:$(tasks.calculate-tag.results.image_tag) docker://$(params.registry-url)/clair-in-ci:$(params.latest-tag)
