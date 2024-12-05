@@ -12,7 +12,7 @@ spec:
     pipeline: "2h"
   params:
     - name: output-image
-      value: quay.io/redhat-appstudio/clair-in-ci:to_test
+      value: quay.io/konflux-ci/clair-in-ci:to_test
     - name: builder-image
       value: registry.access.redhat.com/ubi9/buildah:9.0.0-19@sha256:c8b1d312815452964885680fc5bc8d99b3bfe9b6961228c71a09c72ca8e915eb
     - name: dockerfile
@@ -24,7 +24,7 @@ spec:
     - name: event_type
       value: "{{ event_type }}"
     - name: registry-url
-      value: "quay.io/redhat-appstudio"
+      value: "quay.io/konflux-ci"
     - name: registry-username
       value: "{{ registry_username }}"
     - name: registry-password
@@ -119,7 +119,7 @@ spec:
           kind: ClusterTask
         params:
           - name: IMAGE
-            value: "quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
+            value: "quay.io/konflux-ci/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
           - name: BUILDER_IMAGE
             value: $(params.builder-image)
           - name: DOCKERFILE
@@ -130,13 +130,13 @@ spec:
         taskSpec:
           steps:
             - name: test-clair-version
-              image: quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)
+              image: quay.io/konflux-ci/clair-in-ci:$(tasks.calculate-tag.results.image_tag)
               script: |
                 #!/usr/bin/env bash
                 echo "See current version of Clair below:"
                 clair-action --version
             - name: get-clair-output
-              image: quay.io/redhat-appstudio/clair-in-ci:$(tasks.calculate-tag.results.image_tag)
+              image: quay.io/konflux-ci/clair-in-ci:$(tasks.calculate-tag.results.image_tag)
               script: |
                 #!/usr/bin/env bash
                 echo "Test real life usage of Clair"
