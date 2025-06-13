@@ -9,4 +9,4 @@ RUN microdnf -y --setopt=tsflags=nodocs --setopt=install_weak_deps=0 install \
     DB_PATH=/tmp/matcher.db /bin/clair-action --level info update
 
 COPY --from=konflux-test /utils.sh /utils.sh
-
+COPY --from=konflux-test /usr/bin/retry /usr/bin/
