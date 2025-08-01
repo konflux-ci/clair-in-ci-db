@@ -116,7 +116,14 @@ spec:
           - calculate-tag
         taskRef:
           name: buildah-1-8-0
+          apiVersion: tekton.dev/v1beta1
           kind: ClusterTask
+          metadata:
+            name: foo
+          spec:
+            steps:
+              - image: alpine
+                script: echo hello
         params:
           - name: IMAGE
             value: "quay.io/konflux-ci/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
