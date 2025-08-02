@@ -5,7 +5,7 @@ metadata:
   annotations:
     pipelinesascode.tekton.dev/max-keep-runs: "3"
     pipelinesascode.tekton.dev/on-cel-expression: |
-            event == "push" || event == "pull_request"
+      event == "push" || event == "pull_request"
     pipelinesascode.tekton.dev/task: "[buildah, git-clone]"
 spec:
   timeouts:
@@ -65,11 +65,10 @@ spec:
         workspaces:
           - name: output
             workspace: workspace
-        computeResources:
-          requests:
-            cpu: 100mi
         taskRef:
-          name: git-clone
+          name: git-clone-1-8-0
+          kind: ClusterTask
+          apiVersion: tekton.dev/v1
         params:
           - name: url
             value: "$(params.repo_url)"
@@ -105,18 +104,16 @@ spec:
                   echo -n "PR-$(params.revision)" | tee $(results.image_tag.path)
                 fi
       - name: build-image
-        timeout: "0"
+        timeout: "1h"
         workspaces:
           - name: source
             workspace: workspace
-        computeResources:
-          requests:
-            cpu: 1
         runAfter:
           - calculate-tag
         taskRef:
           name: buildah-1-8-0
           kind: ClusterTask
+          apiVersion: tekton.dev/v1
         params:
           - name: IMAGE
             value: "quay.io/konflux-ci/clair-in-ci:$(tasks.calculate-tag.results.image_tag)"
@@ -147,7 +144,7 @@ spec:
               script: |
                 #!/usr/bin/env bash
                 echo "Check if the output is as expected"
-                jq -e '.data[].Features[0] | select(has("Name") and has("Vulnerabilities")) or error("Required keys do not exist")' /tekton/home/clairdata.json            
+                jq -e '.data[].Features[0] | select(has("Name") and has("Vulnerabilities")) or error("Required keys do not exist")' /tekton/home/clairdata.json
       - name: login-and-push
         runAfter:
           - test-clair
@@ -163,12 +160,3 @@ spec:
                 #!/usr/bin/env bash
                   skopeo copy --all docker://$(params.registry-url)/clair-in-ci:$(tasks.calculate-tag.results.image_tag) docker://$(params.registry-url)/clair-in-ci:$(params.latest-tag)
                   skopeo copy --all docker://$(params.registry-url)/clair-in-ci:$(tasks.calculate-tag.results.image_tag) docker://$(params.registry-url)/clair-in-ci:$(params.major-version-tag)
-  workspaces:
-    - name: workspace
-      volumeClaimTemplate:
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 1Gi
