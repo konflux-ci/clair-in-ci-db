@@ -1,4 +1,4 @@
-FROM quay.io/konflux-ci/konflux-test:v1.4.34@sha256:62a7bf68015c711e0eb0698c10d203d0393a8e0efa09306f1fce543dea383f3c as konflux-test
+FROM quay.io/konflux-ci/konflux-test:v1.4.36@sha256:ed63df1970e2339eb5d170228616829ed56e292a5cff198fd0126b5d1f84045b as konflux-test
 
 FROM quay.io/projectquay/clair-action:v0.0.11
 
