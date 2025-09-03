@@ -1,6 +1,6 @@
 FROM quay.io/konflux-ci/konflux-test:v1.4.40@sha256:99eb8bcc7bcb35bdd5edea7b0ac333bbdb67586dea6b4dab92baf2b8fb32bf2c as konflux-test
 
-FROM quay.io/projectquay/clair-action:v0.0.11
+FROM quay.io/projectquay/clair-action:v0.0.12
 
 RUN microdnf -y --setopt=tsflags=nodocs --setopt=install_weak_deps=0 install \
     jq && \
