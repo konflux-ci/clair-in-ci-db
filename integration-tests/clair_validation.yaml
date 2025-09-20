@@ -1,0 +1,60 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: clair-in-ci-db-validation
+spec:
+  description: |
+    The clair validation integration pipeline runs the tests within the newly built clair-in-ci-db image. 
+    This verifies that the clair utility and its accompanying database which were built into the image
+    conform to the defined testing requirements.
+  params:
+    - description: |
+        Spec section of an Snapshot resource. Not all fields of the
+        resource are required. A minimal example:
+          {
+            "components": [
+              {
+                "containerImage": "quay.io/example/repo:latest",
+                "source": {
+                  "git": {
+                    "url": "https://github.com/org/repo",
+                    "revision": "6c1cbf4193930582d998770411f81d5c70aea29b"
+                  }
+                }
+              }
+            ]
+          }
+      name: SNAPSHOT
+      type: string
+  tasks:
+    - name: test-metadata
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/tekton-integration-catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: /tasks/test-metadata/0.1/test-metadata.yaml
+      params:
+        - name: SNAPSHOT
+          value: $(params.SNAPSHOT)
+        - name: test-name
+          value: "clair-in-ci-db"
+    - name: self-test
+      runAfter:
+        - test-metadata
+      taskSpec:
+        results:
+          - description: Tekton task test output.
+            name: TEST_OUTPUT
+        steps:
+          - name: self-test
+            image: "$(tasks.test-metadata.results.container-image)"
+            script: |
+              #!/usr/bin/env bash
+              set -euo pipefail
+              clair-action report --image-ref=registry.access.redhat.com/ubi9-minimal --db-path=/tmp/matcher.db --format=quay > clairdata.json
+              
+              jq -e '.data[].Features[0] | select(has("Name") and has("Vulnerabilities")) or error("Required keys do not exist")' clairdata.json
