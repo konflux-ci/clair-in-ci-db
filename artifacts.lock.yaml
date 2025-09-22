@@ -1,0 +1,13 @@
+---
+metadata: 
+  version: "1.0"
+artifacts:
+  - download_url: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8
+    checksum: "sha256:cd1db21a863185127f2e3b264c97fb1c6c44c316385707999041ea475c110d1c"
+    filename: "RPM-GPG-KEY-EPEL-8"
+  - download_url: "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/appstream/os/Packages/j/jq-1.6-11.el8_10.x86_64.rpm"
+    checksum: "sha256:fe609ca5ea627f11fc4cd55cca0279f220f82e49045bfd59c38b560c82167662"
+    filename: "jq-1.6-11.el8_10.x86_64.rpm"
+  - download_url: "https://cdn-ubi.redhat.com/content/public/ubi/dist/ubi8/8/x86_64/appstream/os/Packages/o/oniguruma-6.8.2-3.el8.x86_64.rpm"
+    checksum: "sha256:1c5c91d8a33987892ec7320c08311a31245be91800aa5879e20d137971bd053f"
+    filename: "oniguruma-6.8.2-3.el8.x86_64.rpm"
