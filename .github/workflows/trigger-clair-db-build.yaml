@@ -24,10 +24,28 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: 'main'
-    - name: create empty commit
+    - name: Update Clair Database
       run: |
-          git config --global user.email "<>"
-          git config --global user.name "daily-build-trigger"
-          echo "Creating empty commit."
-            git commit --allow-empty -m "$(date)"
-            git push origin "${SOURCE_BRANCH}" -f
+        mkdir -p clair-db
+
+        docker run --rm \
+          -v $(pwd)/clair-db:/output \
+          -e DB_PATH=/output/matcher.db \
+          quay.io/projectquay/clair-action:v0.0.11@sha256:80486643baad47f2ac606e5c0e5274f296c08464aebb3dc90f97f22ba92505dd \
+          /bin/clair-action --level info update
+
+        ls -la clair-db/matcher.db
+        file clair-db/matcher.db
+    - name: Commit and push if changed
+      run: |
+        git config --global user.email "<>"
+        git config --global user.name "daily-build-trigger"
+
+        git add ./clair-db/matcher.db
+        if ! git diff --staged --quiet; then
+          git commit -m "chore: update Clair DB snapshot $(date -u +'%Y-%m-%d')"
+          git push origin "${SOURCE_BRANCH}" -f
+          echo "✅ Database updated and pushed."
+        else
+          echo "ℹ️  Database is up-to-date. No changes to commit."
+        fi
