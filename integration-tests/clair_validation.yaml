@@ -42,6 +42,25 @@ spec:
           value: $(params.SNAPSHOT)
         - name: test-name
           value: "clair-in-ci-db"
+    - name: hadolint
+      runAfter:
+        - test-metadata
+      taskRef:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/tekton-integration-catalog
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: tasks/linters/hadolint/0.1/hadolint.yaml
+      params:
+        - name: git-url
+          value: "$(tasks.test-metadata.results.git-url)"
+        - name: git-revision
+          value: "$(tasks.test-metadata.results.git-revision)"
+        - name: ignore-rules
+          value: "DL3041"
     - name: self-test
       runAfter:
         - test-metadata
