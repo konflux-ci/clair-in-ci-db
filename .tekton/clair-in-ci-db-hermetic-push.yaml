@@ -26,6 +26,10 @@ spec:
     value: quay.io/redhat-user-workloads/rhtap-integration-tenant/clair-in-ci-db-hermetic:{{revision}}
   - name: dockerfile
     value: Dockerfile
+  - name: hermetic
+    value: "true"
+  - name: prefetch-input
+    value: '[{"type": "rpm", "path": "."}, {"type": "generic", "path": "."}]'
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -74,12 +78,12 @@ spec:
       description: Skip checks against built image
       name: skip-checks
       type: string
-    - default: "false"
+    - default: "true"
       description: Execute the build with network isolation
       name: hermetic
       type: string
     - default: ""
-      description: Build dependencies to be prefetched by Cachi2
+      description: Build dependencies to be prefetched by prefetched
       name: prefetch-input
       type: string
     - default: ""
@@ -149,6 +153,8 @@ spec:
         value: $(params.output-image).git
       - name: ociArtifactExpiresAfter
         value: $(params.image-expires-after)
+      - name: dev-package-managers
+        value: "true"
       runAfter:
       - init
       taskRef:
@@ -178,6 +184,8 @@ spec:
         value: $(params.output-image).prefetch
       - name: ociArtifactExpiresAfter
         value: $(params.image-expires-after)
+      - name: dev-package-managers
+        value: "true"
       runAfter:
       - clone-repository
       taskRef:
@@ -217,6 +225,8 @@ spec:
         value: $(params.build-args-file)
       - name: PRIVILEGED_NESTED
         value: $(params.privileged-nested)
+      - name: SOURCE_URL
+        value: $(tasks.clone-repository.results.url)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
