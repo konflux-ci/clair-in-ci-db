@@ -25,6 +25,83 @@ spec:
     value: quay.io/redhat-user-workloads/rhtap-integration-tenant/clair-in-ci-db-hermetic:{{revision}}
   - name: dockerfile
     value: Dockerfile
+  - name: hermetic
+    value: "true"
+  - name: prefetch-input
+    value: '[{"type": "rpm", "path": "."}, {"type": "generic", "path": "."}]'
+  taskRunSpecs:
+    - pipelineTaskName: prefetch-dependencies
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: prefetch-dependencies
+      stepSpecs:
+        - name: prefetch-dependencies
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: build-container
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: sast-snyk-check
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: sast-shell-check
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: sast-unicode-check
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: push-dockerfile
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: ecosystem-cert-preflight-checks
+      stepSpecs:
+        - name: app-check
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: sast-coverity-check
+      stepSpecs:
+        - name: use-trusted-artifact
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while maintaining trust after pipeline customization.
@@ -71,12 +148,12 @@ spec:
       description: Skip checks against built image
       name: skip-checks
       type: string
-    - default: "false"
+    - default: "true"
       description: Execute the build with network isolation
       name: hermetic
       type: string
     - default: ""
-      description: Build dependencies to be prefetched by Cachi2
+      description: Build dependencies to be prefetched by prefetched
       name: prefetch-input
       type: string
     - default: ""
@@ -148,6 +225,8 @@ spec:
         value: $(params.output-image).git
       - name: ociArtifactExpiresAfter
         value: $(params.image-expires-after)
+      - name: dev-package-managers
+        value: "true"
       runAfter:
       - init
       taskRef:
@@ -167,18 +246,53 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
-    - name: prefetch-dependencies
+    - name: fetch-db-data
       params:
-      - name: input
-        value: $(params.prefetch-input)
       - name: SOURCE_ARTIFACT
         value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
       - name: ociStorage
         value: $(params.output-image).prefetch
       - name: ociArtifactExpiresAfter
         value: $(params.image-expires-after)
+      - name: runtimeImage
+        value: "quay.io/projectquay/clair-action:v0.0.12"
+      - name: executionScript
+        value: |
+          #!/usr/bin/env bash
+          set -o errexit
+          set -o nounset
+          set -o pipefail
+          set -x
+
+          DB_PATH=/var/workdir/source/matcher.db /bin/clair-action --level info update
       runAfter:
       - clone-repository
+      taskRef:
+        params:
+        - name: url
+          value: https://github.com/konflux-ci/tekton-integration-catalog.git
+        - name: revision
+          value: main
+        - name: pathInRepo
+          value: tasks/fetch-data-to-trusted-artifact/0.1/fetch-data-to-trusted-artifact.yaml
+        resolver: git
+      workspaces:
+      - name: git-basic-auth
+        workspace: git-auth
+    - name: prefetch-dependencies
+      params:
+      - name: input
+        value: $(params.prefetch-input)
+      - name: SOURCE_ARTIFACT
+        value: $(tasks.fetch-db-data.results.SOURCE_ARTIFACT)
+      - name: ociStorage
+        value: $(params.output-image).prefetch
+      - name: ociArtifactExpiresAfter
+        value: $(params.image-expires-after)
+      - name: dev-package-managers
+        value: "true"
+      runAfter:
+      - fetch-db-data
       taskRef:
         params:
         - name: name
@@ -216,6 +330,8 @@ spec:
         value: $(params.build-args-file)
       - name: PRIVILEGED_NESTED
         value: $(params.privileged-nested)
+      - name: SOURCE_URL
+        value: $(tasks.clone-repository.results.url)
       - name: SOURCE_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       - name: CACHI2_ARTIFACT
