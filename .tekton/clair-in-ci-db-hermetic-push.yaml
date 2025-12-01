@@ -276,9 +276,6 @@ spec:
         - name: pathInRepo
           value: tasks/fetch-data-to-trusted-artifact/0.1/fetch-data-to-trusted-artifact.yaml
         resolver: git
-      workspaces:
-      - name: git-basic-auth
-        workspace: git-auth
     - name: prefetch-dependencies
       params:
       - name: input
