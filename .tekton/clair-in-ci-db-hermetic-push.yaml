@@ -38,8 +38,6 @@ spec:
               memory: 10Gi
             limits:
               memory: 10Gi
-    - pipelineTaskName: prefetch-dependencies
-      stepSpecs:
         - name: prefetch-dependencies
           computeResources:
             requests:
@@ -54,6 +52,30 @@ spec:
               memory: 10Gi
             limits:
               memory: 10Gi
+        - name: buildah
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: clair-scan
+      stepSpecs:
+        - name: clair-scan
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: clamav-scan
+      stepSpecs:
+        - name: extract-and-scan-image
+          computeResources:
+            requests:
+              memory: 10Gi
+            limits:
+              memory: 10Gi
+    - pipelineTaskName: fetch-db-data
+      timeout: "1h0m0s"
     - pipelineTaskName: sast-snyk-check
       stepSpecs:
         - name: use-trusted-artifact
