@@ -60,7 +60,7 @@ spec:
               memory: 10Gi
     - pipelineTaskName: clair-scan
       stepSpecs:
-        - name: clair-scan
+        - name: get-vulnerabilities
           computeResources:
             requests:
               memory: 10Gi
