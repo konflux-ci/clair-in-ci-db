@@ -30,7 +30,7 @@ spec:
   - name: prefetch-input
     value: '[{"type": "rpm", "path": "."}, {"type": "generic", "path": "."}]'
   timeouts:
-    pipeline: "1h15m0s"
+    pipeline: "2h"
   taskRunSpecs:
     - pipelineTaskName: prefetch-dependencies
       stepSpecs:
