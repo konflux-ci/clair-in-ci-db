@@ -13,3 +13,4 @@ ENV DB_PATH=/tmp/matcher.db
 
 COPY --from=konflux-test /utils.sh /utils.sh
 COPY --from=konflux-test /usr/bin/retry /usr/bin/
+COPY --from=konflux-test /usr/local/bin/select-oci-auth /usr/local/bin/
