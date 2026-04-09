@@ -80,7 +80,16 @@ spec:
         limits:
           memory: 10Gi
   - pipelineTaskName: fetch-db-data
-    timeout: "1h0m0s"
+    timeout: "2h0m0s"
+    stepSpecs:
+      - name: run-script
+        computeResources:
+          requests:
+            cpu: "2"
+            memory: 16Gi
+          limits:
+            cpu: "4"
+            memory: 32Gi
   - pipelineTaskName: sast-snyk-check
     stepSpecs:
     - name: use-trusted-artifact
@@ -263,41 +272,43 @@ spec:
       - name: basic-auth
         workspace: git-auth
     - name: fetch-db-data
-      params:
-      - name: SOURCE_ARTIFACT
-        value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
-      - name: ociStorage
-        value: $(params.output-image).prefetch
-      - name: ociArtifactExpiresAfter
-        value: $(params.image-expires-after)
-      - name: runtimeImage
-        value: "quay.io/projectquay/clair-action:v0.0.12"
-      - name: executionScript
-        value: |
-          #!/usr/bin/env bash
-          set -o errexit
-          set -o nounset
-          set -o pipefail
-          set -x
-
-          DB_PATH=/var/workdir/source/matcher.db /bin/clair-action --level info update
       runAfter:
-      - clone-repository
+        - clone-repository
       taskRef:
         params:
-        - name: name
-          value: fetch-data-to-trusted-artifact
-        - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-fetch-data-to-trusted-artifact:0.1@sha256:9be4acd90bb1e75fa0480e7326f9af27e0500c1712bd0bbaaeb41cbe939dddb6
-        - name: kind
-          value: task
+          - name: name
+            value: run-script-oci-ta
+          - name: bundle
+            value: quay.io/konflux-ci/tekton-catalog/task-run-script-oci-ta:0.1@sha256:834a934f1e631a79aea7f2d001162cf90086e664e648c8ca15b69ad9798571ee
+          - name: kind
+            value: task
         resolver: bundles
+      params:
+        - name: SOURCE_ARTIFACT
+          value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+        - name: ociStorage
+          value: $(params.output-image).prefetch
+        - name: ociArtifactExpiresAfter
+          value: $(params.image-expires-after)
+        - name: SCRIPT_RUNNER_IMAGE
+          value: "quay.io/projectquay/clair-action:v0.0.12"
+        - name: SCRIPT
+          value: |
+            #!/usr/bin/env bash
+            set -o errexit
+            set -o nounset
+            set -o pipefail
+            set -x
+
+            DB_PATH=matcher.db /bin/clair-action --level info update
+        - name: HERMETIC
+          value: "false"
     - name: prefetch-dependencies
       params:
       - name: input
         value: $(params.prefetch-input)
       - name: SOURCE_ARTIFACT
-        value: $(tasks.fetch-db-data.results.SOURCE_ARTIFACT)
+        value: $(tasks.fetch-db-data.results.SCRIPT_ARTIFACT)
       - name: ociStorage
         value: $(params.output-image).prefetch
       - name: ociArtifactExpiresAfter
