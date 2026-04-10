@@ -366,6 +366,8 @@ spec:
         value: $(tasks.init.results.http-proxy)
       - name: NO_PROXY
         value: $(tasks.init.results.no-proxy)
+      - name: SQUASH
+        value: "true"
       runAfter:
       - prefetch-dependencies
       taskRef:
