@@ -28,5 +28,6 @@ Create symlinks from your agent's skill directory to `skills/`:
 
 ```bash
 # Example for Codex
-ln -s ../../skills/ci-pipeline-debugging .agents/skills/ci-pipeline-debugging
+mkdir -p .agents/skills
+ln -s ../../skills/ci-pipeline-debugging .agents/skills/
 ```

@@ -88,10 +88,11 @@ Key points:
    packages: [jq, newpackage]
    ```
 
-2. Regenerate the lock file (requires the Cachi2 CLI or a Konflux workspace):
+2. Regenerate the lock file using `rpm-lockfile-prototype`:
    ```bash
-   cachi2 fetch-deps --source . rpm
+   rpm-lockfile-prototype --image <BASE_IMAGE> rpms.in.yaml
    ```
+   This resolves packages against the base image, producing `rpms.lock.yaml` with exact versions and checksums. See [Konflux docs](https://konflux.pages.redhat.com/docs/users/building/prefetching-dependencies.html#enabling-prefetch-builds-for-rpm) for details.
 
 3. If the RPM or its dependencies need to be pinned as generic artifacts, add entries to `artifacts.lock.yaml` with the download URL and SHA-256 checksum
 
@@ -100,7 +101,7 @@ Key points:
    microdnf -y --setopt=tsflags=nodocs install \
    --setopt=install_weak_deps=0 \
    jq-1.6-11.el8_10 \
-   newpackage-x.y-z.el8 && \
+   newpackage-x.y-z.el8
    ```
 
 5. Keep it as a single `RUN` layer to minimize image size

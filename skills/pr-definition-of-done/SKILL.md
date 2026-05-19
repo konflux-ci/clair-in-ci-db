@@ -34,7 +34,7 @@ Every PR to this repo triggers GitHub Actions workflows (hadolint, agentready) a
 ### Code Formatting
 - [ ] No whitespace changes to unrelated code
 - [ ] No whitespace or tabs on empty lines
-- [ ] No trailing newlines at end of file (last newline is at end of code)
+- [ ] Exactly one newline at the end of the file (no extra blank lines)
 - [ ] No removal of unrelated code or unnecessary file changes
 
 ### Dependency Changes
@@ -85,7 +85,7 @@ Runs automatically after the Tekton build pipeline succeeds:
 
 ## CODEOWNERS
 
-All files are owned by the integration-service team. Reviews are automatically requested from: @dirgim @hongweiliu17 @jsztuka @Josh-Everett @kasemAlem @sonam1412 @14rcole @jencull @NigelByrne1
+All files are owned by the integration-service team. Reviews are automatically requested based on the `.github/CODEOWNERS` file.
 
 ## Common Mistakes
 
