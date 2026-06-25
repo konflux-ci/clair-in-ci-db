@@ -296,7 +296,7 @@ spec:
           - name: ociArtifactExpiresAfter
             value: $(params.image-expires-after)
           - name: SCRIPT_RUNNER_IMAGE
-            value: "quay.io/projectquay/clair-action:v0.0.12"
+            value: "quay.io/projectquay/clair-action:v0.0.14"
           - name: SCRIPT
             value: |
               #!/usr/bin/env bash
@@ -304,8 +304,8 @@ spec:
               set -o nounset
               set -o pipefail
               set -x
-              
-              DB_PATH=matcher.db /bin/clair-action --level info update
+
+              DB_PATH=matcher.db /bin/clair-action --level info update --config=clair-config.yaml
           - name: HERMETIC
             value: "false"
       - name: prefetch-dependencies

@@ -1,0 +1,4 @@
+updaters:
+    config:
+        rhel-vex:
+            compressed_file_timeout: "15m"
