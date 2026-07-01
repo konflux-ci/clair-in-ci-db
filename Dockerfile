@@ -1,6 +1,6 @@
 FROM quay.io/konflux-ci/konflux-test:v1.5.1@sha256:e6b090c515168c8ed0fa932ffe0ac6f27dbc1ea41fdb2fe83cfcaa7829b910bd as konflux-test
 
-FROM quay.io/projectquay/clair-action:v0.0.12@sha256:adfc28d51f08b82978aa6dc41b166b05a2a728fa9643c3a1b73b2032f18e7c30
+FROM quay.io/projectquay/clair-action:v0.0.14@sha256:39ecc85e6d12118575dfa8162051912529629bf726a6d2482b451419a9e1c352
 
 RUN rpm --import /cachi2/output/deps/generic/RPM-GPG-KEY-EPEL-8 && \
     microdnf -y --setopt=tsflags=nodocs install \

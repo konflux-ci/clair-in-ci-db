@@ -57,7 +57,7 @@ This is the most critical and failure-prone step in the entire pipeline.
 | Property | Value |
 |----------|-------|
 | Task bundle | `run-script-oci-ta:0.1` |
-| Runner image | `quay.io/projectquay/clair-action:v0.0.12` |
+| Runner image | `quay.io/projectquay/clair-action:v0.0.14` |
 | Command | `DB_PATH=matcher.db /bin/clair-action --level info update` |
 | Hermetic | **No** — explicitly set `HERMETIC: "false"` |
 | CPU | 2 cores request, 4 cores limit |

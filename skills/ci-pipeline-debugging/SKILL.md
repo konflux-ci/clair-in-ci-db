@@ -62,7 +62,7 @@ This step downloads the latest Clair vulnerability database. It is the most reso
 | Property | Value |
 |----------|-------|
 | Task | `run-script-oci-ta` |
-| Runner image | `quay.io/projectquay/clair-action:v0.0.12` |
+| Runner image | `quay.io/projectquay/clair-action:v0.0.14` |
 | Command | `DB_PATH=matcher.db /bin/clair-action --level info update` |
 | Hermetic | **No** (needs network access to download DB) |
 | CPU request/limit | 2 / 4 cores |
