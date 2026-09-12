@@ -17,7 +17,7 @@ jobs:
       - uses: BSFishy/pip-action@v1
         with:
           packages: |
-            agentready==2.31.2
+            agentready==2.52.2
       - run: pip install agentready
             
       - name: Run agentready check
