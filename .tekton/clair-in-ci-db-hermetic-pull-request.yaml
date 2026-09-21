@@ -63,14 +63,6 @@ spec:
           memory: 10Gi
         limits:
           memory: 10Gi
-  - pipelineTaskName: clair-scan
-    stepSpecs:
-    - name: get-vulnerabilities
-      computeResources:
-        requests:
-          memory: 10Gi
-        limits:
-          memory: 10Gi
   - pipelineTaskName: clamav-scan
     stepSpecs:
     - name: extract-and-scan-image
