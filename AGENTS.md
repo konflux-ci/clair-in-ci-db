@@ -13,11 +13,14 @@ This repository contains a containerized [Clair](https://quay.github.io/clair/) 
 ## Repository Structure
 
 ```
+.tekton/                                     # Tekton pipeline definitions
+  clair-in-ci-db-hermetic-pull-request.yaml  # PR validation pipeline
+  clair-in-ci-db-hermetic-push.yaml          # Push/merge pipeline
 integration-tests/     # Tekton pipeline and task definitions for running integration and e2e tests
 rpms.in.yaml           # RPM dependency declaration (jq)
 rpms.lock.yaml         # Pinned RPM versions and checksums for hermetic builds
-artifacts.lock.yaml    # Pinned generic artifact checksums (EPEL GPG key, RPMs)                                
-Dockerfile             # Container image definition 
+artifacts.lock.yaml    # Pinned generic artifact checksums (EPEL GPG key, RPMs)
+Dockerfile             # Container image definition
 ```
 
 ## Architecture
@@ -49,3 +52,4 @@ The integration test pipeline (`integration-tests/clair_validation.yaml`) valida
 - Never make changes that include sensitive information like API keys, secrets, passwords, etc.
 - Comment changes, but only for logic that is not obvious.
 - Make sure that the Dockerfile is well-formatted and does not include unnecessary layers
+- The pull-request and push Tekton pipeline files (`.tekton/`) share common configuration (e.g., `SCRIPT_RUNNER_IMAGE` version). When updating shared values in one file, always update the other to keep them in sync.
