@@ -19,8 +19,8 @@ This repository contains a containerized [Clair](https://quay.github.io/clair/) 
 integration-tests/     # Tekton pipeline and task definitions for running integration and e2e tests
 rpms.in.yaml           # RPM dependency declaration (jq)
 rpms.lock.yaml         # Pinned RPM versions and checksums for hermetic builds
-artifacts.lock.yaml    # Pinned generic artifact checksums (EPEL GPG key, RPMs)
-Dockerfile             # Container image definition
+artifacts.lock.yaml    # Pinned generic artifact checksums (EPEL GPG key, RPMs)                                
+Dockerfile             # Container image definition 
 ```
 
 ## Architecture
