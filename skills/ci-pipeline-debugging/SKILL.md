@@ -71,6 +71,10 @@ This step downloads the latest Clair vulnerability database. It is the most reso
 
 The output artifact (`SCRIPT_ARTIFACT`) is passed to `prefetch-dependencies`, which means the `matcher.db` file is included in the source artifact chain and eventually available during the `build-container` step where the Dockerfile `COPY matcher.db /tmp/matcher.db` picks it up.
 
+### Oracle updater HTTP 403
+
+If `fetch-db-data` fails with `oracle-YYYY-updater` HTTP 403 errors, verify the Clair Action version and escalate to the Clair team. The Oracle endpoint may reject ClairCore's default User-Agent.
+
 ## Resource Requirements
 
 Most tasks request 10 GiB memory. Key allocations:
